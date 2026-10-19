@@ -46,7 +46,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: site-build
+          name: nextjs-static-site
           path: out/
           if-no-files-found: error
           retention-days: 7
