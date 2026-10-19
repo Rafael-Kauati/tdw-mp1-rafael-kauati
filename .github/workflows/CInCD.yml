@@ -181,4 +181,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./deploy-artifact --project-name=tdw-mp1-rafael-kauati --branch=${{ github.ref_name }}
+          command: pages deploy ./deploy-artifact --project-name=mp1 --branch=${{ github.ref_name }}
