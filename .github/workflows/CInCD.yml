@@ -16,6 +16,7 @@ jobs:
   install:
     name: Install Dependencies
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
@@ -28,10 +29,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
   code-quality:
-    name: Code Qualityy
+    name: Code Quality
     runs-on: ubuntu-latest
     needs: install
 
@@ -46,7 +47,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Run ESLint
         run: npm run lint
@@ -67,7 +68,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Check Prettier formatting
         run: npm run format:check
@@ -88,7 +89,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Run Vitest tests
         run: npm test
@@ -112,7 +113,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Build application
         run: npm run build
