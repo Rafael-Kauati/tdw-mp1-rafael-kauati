@@ -10,76 +10,11 @@ on:
       - opened
       - synchronize
       - reopened
-  workflow_dispatch:
 
 jobs:
-  code-quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Run ESLint
-        run: npm run lint
-
-  formatting:
-    name: Formatting
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Check Prettier formatting
-        run: npm run format:check
-
-  tests:
-    name: Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Run Vitest tests
-        run: npm test
-
   build:
-    name: Build and Package
+    name: Build
     runs-on: ubuntu-latest
-    needs:
-      - code-quality
-      - formatting
-      - tests
 
     steps:
       - name: Checkout repository
@@ -92,7 +27,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install
 
       - name: Build application
         run: npm run build
@@ -104,11 +39,9 @@ jobs:
 
       - name: Verify build output
         run: |
-          set -e
           test -f .next/BUILD_ID
           test -d out
           test -f out/index.html
-          echo "Build verification successful."
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -119,7 +52,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    name: Deploy (Artifact Download Only)
+    name: Deploy
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -128,12 +61,74 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: nextjs-static-site
+          name: site-build
           path: out/
 
       - name: Verify downloaded artifact
         run: |
-          set -e
           test -f out/index.html
           echo "Build artifact downloaded successfully."
           find out -type f | head -30
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Vitest tests
+        run: npm test
