@@ -40,13 +40,13 @@ jobs:
       - name: Verify build output
         run: test -f .next/BUILD_ID
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: production-build
-          path: ${{ github.workspace }}/.next/**
-          if-no-files-found: error
-          retention-days: 1
+      - name: Verify artifact path
+        run: |
+          echo "Workspace: $GITHUB_WORKSPACE"
+          echo "Build ID:"
+          cat "$GITHUB_WORKSPACE/.next/BUILD_ID"
+          echo "Files to upload:"
+          find "$GITHUB_WORKSPACE/.next" -type f | head -30
 
   code-quality:
     name: Code Quality
