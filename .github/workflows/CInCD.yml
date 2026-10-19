@@ -10,13 +10,96 @@ on:
       - opened
       - synchronize
       - reopened
-
-
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
+  install:
+    name: Install Dependencies
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: install
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    needs: install
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: install
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Vitest tests
+        run: npm test
+
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs:
+      - code-quality
+      - formatting
+      - tests
 
     steps:
       - name: Checkout repository
@@ -41,9 +124,11 @@ jobs:
 
       - name: Verify build output
         run: |
+          set -e
           test -f .next/BUILD_ID
           test -d out
           test -f out/index.html
+          echo "Build verification successful."
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -52,85 +137,3 @@ jobs:
           path: out/
           if-no-files-found: error
           retention-days: 7
-
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: site-build
-          path: out/
-
-      - name: Verify downloaded artifact
-        run: |
-          test -f out/index.html
-          echo "Build artifact downloaded successfully."
-          find out -type f | head -30
-
-  code-quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run ESLint
-        run: npm run lint
-
-  formatting:
-    name: Formatting
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Check Prettier formatting
-        run: npm run format:check
-
-  tests:
-    name: Tests
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run Vitest tests
-        run: npm test
