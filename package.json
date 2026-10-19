@@ -8,7 +8,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@contentful/rich-text-react-renderer": "^15.17.1",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "eslint": "^9.0.0",
     "eslint-config-next": "latest",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "vitest": "^3.2.0"
   }
 }
