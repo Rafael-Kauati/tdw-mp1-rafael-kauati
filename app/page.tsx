@@ -84,7 +84,7 @@ export default async function Page() {
     return (
       <div className="container mx-auto px-5">
         <Intro />
-        <p>No posts found. Please check your Contentful configuration.</p>
+        <p>No posts found!!!. Please check your Contentful configuration.</p>
       </div>
     );
   }
