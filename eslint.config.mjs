@@ -18,5 +18,6 @@ export default defineConfig([
     "build/**",
     "next-env.d.ts",
     "node_modules/**",
+    "cms-contentful-app/**",
   ]),
 ]);
