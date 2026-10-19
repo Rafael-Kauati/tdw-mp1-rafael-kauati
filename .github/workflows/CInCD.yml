@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: production-build
-          path: .next/
+          path: ${{ github.workspace }}/.next/**
           if-no-files-found: error
           retention-days: 1
 
