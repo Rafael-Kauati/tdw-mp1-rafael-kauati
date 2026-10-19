@@ -36,6 +36,24 @@ jobs:
           CONTENTFUL_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_ACCESS_TOKEN }}
           CONTENTFUL_PREVIEW_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_PREVIEW_ACCESS_TOKEN }}
           CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+      - name: Inspect build output
+        if: always()
+        run: |
+            echo "Current directory:"
+            pwd
+  
+            echo "Root directory contents:"
+            ls -la
+  
+            echo "Next.js build output:"
+            if [ -d .next ]; then
+              ls -lah .next
+            else
+              echo ".next directory not found"
+            fi
+  
+            echo "Configured build directory:"
+            grep -n "distDir\|output" next.config.* 2>/dev/null || true
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v5
