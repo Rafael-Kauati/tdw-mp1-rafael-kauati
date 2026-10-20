@@ -13,7 +13,7 @@ function Intro() {
   return (
     <section className="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
       <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">
-        Blog de TDW.
+        Blog de TDW uwu.
       </h1>
       <h2 className="text-center md:text-left text-lg mt-5 md:pl-8">
         Aplicação de exemplo para o MP1 com:{" "}
@@ -84,7 +84,7 @@ export default async function Page() {
     return (
       <div className="container mx-auto px-5">
         <Intro />
-        <p>No posts found. Please check your Contentful configuration.</p>
+        <p>No posts found!!!. Please check your Contentful configuration.</p>
       </div>
     );
   }
