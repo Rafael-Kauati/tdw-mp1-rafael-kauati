@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - synchronize
       - dev
   pull_request:
     types:
       - opened
+      - synchronize
       - reopened
   repository_dispatch:
     types:
