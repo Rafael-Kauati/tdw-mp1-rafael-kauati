@@ -44,7 +44,32 @@ jobs:
       - name: Install dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm install
+  sast:
+    name: SonarQube SAST
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+
+      - name: Run SonarQube analysis
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -124,6 +149,7 @@ jobs:
       - code-quality
       - formatting
       - tests
+      - sast
 
     steps:
       - name: Checkout repository
