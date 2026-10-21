@@ -1,4 +1,3 @@
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { ReactNode } from "react";
@@ -17,13 +16,9 @@ vi.mock("@/lib/api", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-  }: {
-    href: string;
-    children: ReactNode;
-  }) => <a href={href}>{children}</a>,
+  default: ({ href, children }: { href: string; children: ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock("../app/date", () => ({
@@ -33,9 +28,7 @@ vi.mock("../app/date", () => ({
 }));
 
 vi.mock("../app/cover-image", () => ({
-  default: ({ title }: { title: string }) => (
-    <div>Cover: {title}</div>
-  ),
+  default: ({ title }: { title: string }) => <div>Cover: {title}</div>,
 }));
 
 vi.mock("../app/avatar", () => ({
