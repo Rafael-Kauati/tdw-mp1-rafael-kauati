@@ -88,7 +88,7 @@ export default async function Page() {
   const { isEnabled } = await draftMode();
   const allPosts = await getAllPosts(isEnabled);
 
-  var debugMessage = "Checking posts";
+  var debbugMessage = "Checking posts";
 
   if (!allPosts || allPosts.length == 0) {
     return (
