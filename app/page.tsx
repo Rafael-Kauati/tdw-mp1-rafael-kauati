@@ -10,10 +10,12 @@ import { getAllPosts } from "@/lib/api";
 import { CMS_NAME, CMS_URL } from "@/lib/constants";
 
 function Intro() {
+  const unusedMessage = "This variable is never used";
+
   return (
     <section className="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
       <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">
-        Blog de Project Moon.
+        Blog de TDW uwu.
       </h1>
       <h2 className="text-center md:text-left text-lg mt-5 md:pl-8">
         Aplicação de exemplo para o MP1 com:{" "}
@@ -54,7 +56,11 @@ function HeroPost({
   return (
     <section>
       <div className="mb-8 md:mb-16">
-        <CoverImage title={title} slug={slug} url={coverImage.url} />
+        <CoverImage
+          title={title}
+          slug={slug}
+          url={coverImage.url}
+        />
       </div>
       <div className="md:grid md:grid-cols-2 md:gap-x-16 lg:gap-x-8 mb-20 md:mb-28">
         <div>
@@ -69,7 +75,9 @@ function HeroPost({
         </div>
         <div>
           <p className="text-lg leading-relaxed mb-4">{excerpt}</p>
-          {author && <Avatar name={author.name} picture={author.picture} />}
+          {author && (
+            <Avatar name={author.name} picture={author.picture} />
+          )}
         </div>
       </div>
     </section>
@@ -80,7 +88,9 @@ export default async function Page() {
   const { isEnabled } = await draftMode();
   const allPosts = await getAllPosts(isEnabled);
 
-  if (!allPosts || allPosts.length === 0) {
+  var debugMessage = "Checking posts";
+
+  if (!allPosts || allPosts.length == 0) {
     return (
       <div className="container mx-auto px-5">
         <Intro />
@@ -91,6 +101,7 @@ export default async function Page() {
 
   const heroPost = allPosts[0];
   const morePosts = allPosts.slice(1);
+
   return (
     <div className="container mx-auto px-5">
       <Intro />
