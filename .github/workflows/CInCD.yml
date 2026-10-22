@@ -36,6 +36,31 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Debug dependency lockfile
+        run: |
+          echo "Commit:"
+          git rev-parse HEAD
+
+          echo "Node version:"
+          node --version
+
+          echo "npm version:"
+          npm --version
+
+          echo "Lockfile package versions:"
+          node -e "
+            const lock = require('./package-lock.json');
+            for (const name of [
+              '@emnapi/runtime',
+              '@emnapi/core'
+            ]) {
+              const key = 'node_modules/' + name;
+              console.log(name, lock.packages?.[key]?.version ?? 'MISSING');
+            }
+          "
+
+          echo "Lockfile status:"
+          git status --short
       - name: Install dependencies
         run: npm ci
 
