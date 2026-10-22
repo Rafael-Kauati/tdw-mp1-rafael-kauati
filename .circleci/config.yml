@@ -26,14 +26,13 @@ jobs:
             - node_modules
 
   sast:
-    executor: node
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest
     steps:
       - checkout
       - run:
           name: SonarQube Cloud analysis
-          command: |
-            npx --yes sonar-scanner \
-              -Dsonar.token="$SONAR_TOKEN"
+          command: sonar-scanner
 
   code-quality:
     executor: node
