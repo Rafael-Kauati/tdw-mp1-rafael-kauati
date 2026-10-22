@@ -14,8 +14,8 @@ on:
     types:
       - cms-content-updated
   workflow_dispatch:
-#  schedule:
-#    - cron: "0 0 * * *"
+  # schedule:
+  #   - cron: "0 0 * * *"
 
 permissions:
   contents: read
@@ -33,20 +33,16 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        id: npm-cache
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm install
+        run: npm ci
+
   sast:
     name: SonarQube SAST
     runs-on: ubuntu-latest
+    needs: install
 
     steps:
       - name: Checkout repository
@@ -58,18 +54,14 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
-          fail-on-cache-miss: true
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Run SonarQube analysis
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -83,13 +75,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
-          fail-on-cache-miss: true
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run ESLint
         run: npm run lint
@@ -107,13 +97,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
-          fail-on-cache-miss: true
+      - name: Install dependencies
+        run: npm ci
 
       - name: Check Prettier formatting
         run: npm run format:check
@@ -131,13 +119,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
-          fail-on-cache-miss: true
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run Vitest tests
         run: npm test
@@ -159,13 +145,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
-          fail-on-cache-miss: true
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build application
         run: npm run build
