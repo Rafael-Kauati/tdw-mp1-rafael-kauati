@@ -35,32 +35,36 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
-
-      - name: Debug dependency lockfile
+      - name: Inspect @emnapi dependency tree
         run: |
-          echo "Commit:"
-          git rev-parse HEAD
+          node <<'NODE'
+          const lock = require('./package-lock.json');
 
-          echo "Node version:"
-          node --version
+          for (const name of ['@emnapi/runtime', '@emnapi/core']) {
+            console.log(`\n=== ${name} ===`);
 
-          echo "npm version:"
-          npm --version
+            const entries = Object.entries(lock.packages || {});
 
-          echo "Lockfile package versions:"
-          node -e "
-            const lock = require('./package-lock.json');
-            for (const name of [
-              '@emnapi/runtime',
-              '@emnapi/core'
-            ]) {
-              const key = 'node_modules/' + name;
-              console.log(name, lock.packages?.[key]?.version ?? 'MISSING');
+            console.log('Locked package entries:');
+            for (const [path, pkg] of entries) {
+              if (path.includes(name)) {
+                console.log(`  ${path}: ${pkg.version || 'bundled'}`);
+              }
             }
-          "
 
-          echo "Lockfile status:"
-          git status --short
+            console.log('Packages requiring it:');
+            for (const [path, pkg] of entries) {
+              for (const section of ['dependencies', 'optionalDependencies']) {
+                const version = pkg[section]?.[name];
+                if (version) {
+                  console.log(
+                    `  ${path || '(root)'} -> ${section}: ${version}`
+                  );
+                }
+              }
+            }
+          }
+          NODE
       - name: Install dependencies
         run: npm ci
 
