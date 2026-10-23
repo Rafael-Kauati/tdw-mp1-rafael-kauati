@@ -146,6 +146,21 @@ jobs:
             echo "PREVIEW_URL=https://pr-${PR_NUMBER}.mp1-rafael-kauati.pages.dev" \
               >> "$BASH_ENV"
       - run:
+          name: Validate GitHub token
+          command: |
+            if [ -z "${GITHUB_TOKEN:-}" ]; then
+              echo "ERROR: GITHUB_TOKEN is missing or empty."
+              exit 1
+            fi
+
+            echo "GITHUB_TOKEN is set."
+
+            curl -sS \
+              -w '\nHTTP status: %{http_code}\n' \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/user
+      - run:
           name: Comment preview URL on pull request
           command: |
             set -e
