@@ -12,13 +12,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-deps-v1-node22-{{ checksum "package-lock.json" }}
-            - node-deps-v1-node22-
+            - node-deps-v1-{{ checksum "package-lock.json" }}
       - run:
           name: Install dependencies
           command: npm install
       - save_cache:
-          key: node-deps-v1-node22-{{ checksum "package-lock.json" }}
+          key: node-deps-v1-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
       - persist_to_workspace:
@@ -73,14 +72,10 @@ jobs:
           at: .
       - run:
           name: Build Next.js static site
-          command: npm run build
-      - run:
-          name: Verify static build
           command: |
-            set -e
+            npm run build
             test -d out
             test -f out/index.html
-            echo "Static build verified successfully."
       - persist_to_workspace:
           root: .
           paths:
@@ -93,13 +88,10 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Verify build artifact
-          command: test -f out/index.html
-      - run:
           name: Deploy production to Cloudflare Pages
           command: |
-            npx --yes wrangler pages deploy ./out 
-              --project-name=mp1-rafael-kauati 
+            npx --yes wrangler pages deploy ./out \
+              --project-name=mp1-rafael-kauati \
               --branch=main
 
   deploy-dev:
@@ -109,13 +101,10 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Verify build artifact
-          command: test -f out/index.html
-      - run:
-          name: Deploy development to Cloudflare Pages
+          name: Deploy development preview to Cloudflare Pages
           command: |
-            npx --yes wrangler pages deploy ./out 
-              --project-name=mp1-rafael-kauati 
+            npx --yes wrangler pages deploy ./out \
+              --project-name=mp1-rafael-kauati \
               --branch=dev
 
   deploy-pr-preview:
@@ -125,92 +114,23 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Verify build artifact
-          command: test -f out/index.html
-      - run:
           name: Deploy pull request preview to Cloudflare Pages
           command: |
-            set -e
-
             if [ -z "${CIRCLE_PULL_REQUEST:-}" ]; then
-              echo "No pull request URL detected."
-              exit 1
+              echo "No pull request URL found; skipping preview deployment."
+              exit 0
             fi
 
-            PR_NUMBER="${CIRCLE_PULL_REQUEST##*/}"
+            PR_NUMBER=$(echo "$CIRCLE_PULL_REQUEST" | grep -oE '[0-9]+$')
+
+            if [ -z "$PR_NUMBER" ]; then
+              echo "Could not determine pull request number."
+              exit 1
+            fi
 
             npx --yes wrangler pages deploy ./out \
               --project-name=mp1-rafael-kauati \
               --branch="pr-${PR_NUMBER}"
-
-            echo "PREVIEW_URL=https://pr-${PR_NUMBER}.mp1-rafael-kauati.pages.dev" \
-              >> "$BASH_ENV"
-      - run:
-          name: Validate GitHub token
-          command: |
-            if [ -z "${GITHUB_TOKEN:-}" ]; then
-              echo "ERROR: GITHUB_TOKEN is missing or empty."
-              exit 1
-            fi
-
-            echo "GITHUB_TOKEN is set."
-
-            curl -sS \
-              -w '\nHTTP status: %{http_code}\n' \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              https://api.github.com/user
-      - run:
-          name: Comment preview URL on pull request
-          command: |
-            set -e
-
-            if [ -z "${CIRCLE_PULL_REQUEST:-}" ]; then
-              echo "No pull request URL detected."
-              exit 1
-            fi
-
-            if [ -z "${GITHUB_TOKEN:-}" ]; then
-              echo "GITHUB_TOKEN must be configured in CircleCI."
-              exit 1
-            fi
-
-            PR_NUMBER="${CIRCLE_PULL_REQUEST##*/}"
-            REPOSITORY="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
-            MARKER="<!-- cloudflare-pages-preview -->"
-            PREVIEW_URL="https://pr-${PR_NUMBER}.mp1-rafael-kauati.pages.dev"
-
-            BODY="$(printf '%s\n\n### Cloudflare Pages Preview\n\nPreview deployment: [Open preview](%s)\n\n_This link is updated when the pull request is built again._' \
-              "$MARKER" "$PREVIEW_URL")"
-
-            COMMENTS_URL="https://api.github.com/repos/${REPOSITORY}/issues/${PR_NUMBER}/comments"
-
-            COMMENTS="$(curl --fail --silent --show-error \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              "$COMMENTS_URL?per_page=100")"
-
-            COMMENT_ID="$(printf '%s' "$COMMENTS" | \
-              jq -r --arg marker "$MARKER" \
-              '[.[] | select(.body | contains($marker))][0].id // empty')"
-
-            if [ -n "$COMMENT_ID" ]; then
-              curl --fail --silent --show-error \
-                -X PATCH \
-                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "Content-Type: application/json" \
-                "https://api.github.com/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}" \
-                -d "$(jq -n --arg body "$BODY" '{body: $body}')"
-            else
-              curl --fail --silent --show-error \
-                -X POST \
-                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "Content-Type: application/json" \
-                "$COMMENTS_URL" \
-                -d "$(jq -n --arg body "$BODY" '{body: $body}')"
-            fi
 
 workflows:
   ci-cd:
