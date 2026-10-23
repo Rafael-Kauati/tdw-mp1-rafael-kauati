@@ -30,9 +30,42 @@ jobs:
       - image: sonarsource/sonar-scanner-cli:latest
     steps:
       - checkout
+
+      - run:
+          name: Prepare Git history
+          command: |
+            if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              git fetch --unshallow
+            else
+              git fetch --all --tags
+            fi
+
+      - run:
+          name: Verify SonarQube configuration
+          command: |
+            set -eu
+
+            if [ -z "${SONAR_TOKEN:-}" ]; then
+              echo "ERROR: SONAR_TOKEN is missing."
+              exit 1
+            fi
+
+            if [ ! -f sonar-project.properties ]; then
+              echo "ERROR: sonar-project.properties is missing."
+              exit 1
+            fi
+
+            echo "Git branch: ${CIRCLE_BRANCH:-unknown}"
+            echo "Git commit: $(git rev-parse HEAD)"
+            echo "Git history prepared."
+            echo "SonarQube token is configured."
+
       - run:
           name: SonarQube Cloud analysis
-          command: sonar-scanner
+          command: |
+            sonar-scanner \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.verbose=true
 
   code-quality:
     executor: node
