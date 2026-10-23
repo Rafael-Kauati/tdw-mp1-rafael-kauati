@@ -210,9 +210,9 @@ jobs:
     needs: build
     if: |
       (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) ||
+      github.ref == 'refs/heads/main') ||
       (github.event_name == 'repository_dispatch' &&
-        github.ref == 'refs/heads/main')
+      github.ref == 'refs/heads/main')
 
     steps:
       - name: Download build artifact
