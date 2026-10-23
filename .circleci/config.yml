@@ -72,7 +72,10 @@ jobs:
           at: .
       - run:
           name: Build Next.js static site
-          command: npm run build
+          command: |
+            npm run build
+            test -d out
+            test -f out/index.html
       - persist_to_workspace:
           root: .
           paths:
@@ -98,11 +101,36 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Deploy development to Cloudflare Pages
+          name: Deploy development preview to Cloudflare Pages
           command: |
             npx --yes wrangler pages deploy ./out \
               --project-name=mp1-rafael-kauati \
               --branch=dev
+
+  deploy-pr-preview:
+    executor: node
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Deploy pull request preview to Cloudflare Pages
+          command: |
+            if [ -z "${CIRCLE_PULL_REQUEST:-}" ]; then
+              echo "No pull request URL found; skipping preview deployment."
+              exit 0
+            fi
+
+            PR_NUMBER=$(echo "$CIRCLE_PULL_REQUEST" | grep -oE '[0-9]+$')
+
+            if [ -z "$PR_NUMBER" ]; then
+              echo "Could not determine pull request number."
+              exit 1
+            fi
+
+            npx --yes wrangler pages deploy ./out \
+              --project-name=mp1-rafael-kauati \
+              --branch="pr-${PR_NUMBER}"
 
 workflows:
   ci-cd:
@@ -145,3 +173,12 @@ workflows:
           filters:
             branches:
               only: dev
+
+      - deploy-pr-preview:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - main
+                - dev
