@@ -35,36 +35,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Inspect @emnapi dependency tree
-        run: |
-          node <<'NODE'
-          const lock = require('./package-lock.json');
 
-          for (const name of ['@emnapi/runtime', '@emnapi/core']) {
-            console.log(`\n=== ${name} ===`);
-
-            const entries = Object.entries(lock.packages || {});
-
-            console.log('Locked package entries:');
-            for (const [path, pkg] of entries) {
-              if (path.includes(name)) {
-                console.log(`  ${path}: ${pkg.version || 'bundled'}`);
-              }
-            }
-
-            console.log('Packages requiring it:');
-            for (const [path, pkg] of entries) {
-              for (const section of ['dependencies', 'optionalDependencies']) {
-                const version = pkg[section]?.[name];
-                if (version) {
-                  console.log(
-                    `  ${path || '(root)'} -> ${section}: ${version}`
-                  );
-                }
-              }
-            }
-          }
-          NODE
       - name: Install dependencies
         run: npm ci
 
